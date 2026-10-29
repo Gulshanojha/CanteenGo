@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CanteenGo</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;
+--bg:#fff9f2;--surface:#ffffff;--text:#1f1a17;--muted:#5c4f47;--primary:#c2410c;--on-primary:#ffffff;--border:#e4d5c8;--ok:#166534;--err:#b91c1c;--chip:#fde8d8;
+--s1:4px;--s2:8px;--s3:16px;--s4:24px;--s5:32px}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#16120f;--surface:#241d18;--text:#f5ede6;--muted:#c9b8aa;--primary:#fb923c;--on-primary:#1a0f05;--border:#4a3d33;--ok:#86efac;--err:#fca5a5;--chip:#3a2b20}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#16120f;--surface:#241d18;--text:#f5ede6;--muted:#c9b8aa;--primary:#fb923c;--on-primary:#1a0f05;--border:#4a3d33;--ok:#86efac;--err:#fca5a5;--chip:#3a2b20}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:var(--s2);padding:var(--s2) var(--s3)}
+h1{font-size:1.25rem;margin:0}h2{font-size:1.25rem;margin:0 0 var(--s3)}h3{font-size:1rem;margin:0}
+main{max-width:1200px;margin:0 auto;padding:var(--s3)}
+.btn{font:inherit;font-weight:600;min-height:44px;padding:0 var(--s3);border-radius:10px;border:2px solid var(--primary);background:var(--primary);color:var(--on-primary);cursor:pointer;transition:background .15s,transform .1s}
+.btn:hover{filter:brightness(1.1)}.btn:active{transform:scale(.97)}
+.btn:disabled{background:var(--border);border-color:var(--border);color:var(--muted);cursor:not-allowed;transform:none;filter:none}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--border)}
+.btn.sm{min-height:36px;min-width:36px;padding:0 var(--s2)}
+label{display:block;font-weight:600;margin-bottom:var(--s1)}
+input,select{font:inherit;width:100%;min-height:44px;padding:0 var(--s2);border:2px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text)}
+input:focus{border-color:var(--primary)}
+input[aria-invalid="true"],select[aria-invalid="true"]{border-color:var(--err)}
+.err{color:var(--err);font-size:.875rem;min-height:1.3em;margin:var(--s1) 0 0}
+.filters{display:flex;flex-wrap:wrap;gap:var(--s2);margin:var(--s3) 0}
+.pill{font:inherit;min-height:40px;padding:0 var(--s3);border-radius:999px;border:2px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary);font-weight:600}
+.grid{display:grid;gap:var(--s3);grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));list-style:none;margin:0;padding:0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:var(--s3);display:flex;flex-direction:column;gap:var(--s2);height:100%}
+.card.out{opacity:.75}
+.art{font-size:2.5rem;line-height:1;background:var(--chip);border-radius:10px;height:84px;display:grid;place-items:center}
+.row{display:flex;justify-content:space-between;align-items:center;gap:var(--s2)}
+.meta{color:var(--muted);font-size:.875rem}
+.dot{display:inline-block;width:12px;height:12px;border:2px solid;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.dot.v{color:#15803d;background:radial-gradient(circle,#15803d 35%,transparent 40%)}
+.dot.n{color:#b91c1c;background:radial-gradient(circle,#b91c1c 35%,transparent 40%)}
+.tag{background:var(--chip);border-radius:6px;padding:2px 8px;font-size:.8rem;font-weight:600}
+.tag.out{background:var(--err);color:var(--surface)}
+.cols{display:grid;gap:var(--s4)}
+@media(min-width:900px){.cols{grid-template-columns:1.2fr 1fr;align-items:start}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:var(--s3)}
+.line{display:flex;justify-content:space-between;align-items:center;gap:var(--s2);padding:var(--s2) 0;border-bottom:1px solid var(--border)}
+.qty{display:flex;align-items:center;gap:var(--s2)}
+.field{margin-bottom:var(--s3)}
+.empty{text-align:center;padding:var(--s5) var(--s3)}.empty .art{margin:0 auto var(--s3);width:96px}
+.alert{border:2px solid var(--err);color:var(--err);border-radius:10px;padding:var(--s3);margin-bottom:var(--s3)}
+ol.steps{list-style:none;margin:var(--s4) 0;padding:0;display:grid;gap:var(--s3)}
+ol.steps li{display:flex;align-items:center;gap:var(--s3);color:var(--muted)}
+ol.steps .n{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);display:grid;place-items:center;font-weight:700;transition:background .4s}
+ol.steps li.done{color:var(--text)}ol.steps li.done .n{background:var(--ok);border-color:var(--ok);color:var(--bg)}
+ol.steps li.now{color:var(--text);font-weight:700}ol.steps li.now .n{border-color:var(--primary);background:var(--primary);color:var(--on-primary)}
+.big{font-size:2rem;font-weight:800}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.toast{position:fixed;left:50%;bottom:calc(var(--s3) + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:var(--s2) var(--s3);border-radius:10px;z-index:9}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1><a href="#menu" style="color:inherit;text-decoration:none">🍛 CanteenGo</a></h1>
+  <div class="row">
+    <button class="btn ghost sm" id="theme" aria-label="Toggle dark mode">🌓</button>
+    <button class="btn" id="cartBtn">Cart (<span id="cnt">0</span>)</button>
+  </div>
+</header>
+<main id="main" tabindex="-1"></main>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script type="application/json" id="menu-data">
+[
+{"id":1,"name":"Samosa (2 pcs)","cat":"Snacks","veg":true,"price":30,"wait":5,"icon":"🥟","desc":"Crisp pastry with spiced potato filling.","out":false},
+{"id":2,"name":"Veg Sandwich","cat":"Snacks","veg":true,"price":45,"wait":8,"icon":"🥪","desc":"Grilled with chutney and fresh veggies.","out":false},
+{"id":3,"name":"Chicken Roll","cat":"Snacks","veg":false,"price":70,"wait":10,"icon":"🌯","desc":"Spiced chicken wrapped in a paratha.","out":false},
+{"id":4,"name":"French Fries","cat":"Snacks","veg":true,"price":50,"wait":7,"icon":"🍟","desc":"Salted and golden, with ketchup.","out":true},
+{"id":5,"name":"Veg Thali","cat":"Meals","veg":true,"price":90,"wait":12,"icon":"🍱","desc":"Dal, sabzi, rice, 3 rotis and salad.","out":false},
+{"id":6,"name":"Chicken Biryani","cat":"Meals","veg":false,"price":120,"wait":15,"icon":"🍗","desc":"Fragrant rice with tender chicken.","out":false},
+{"id":7,"name":"Rajma Chawal","cat":"Meals","veg":true,"price":80,"wait":10,"icon":"🍛","desc":"Kidney bean curry with steamed rice.","out":true},
+{"id":8,"name":"Egg Fried Rice","cat":"Meals","veg":false,"price":85,"wait":12,"icon":"🍳","desc":"Wok-tossed rice with egg and veggies.","out":false},
+{"id":9,"name":"Paneer Wrap","cat":"Meals","veg":true,"price":75,"wait":10,"icon":"🌮","desc":"Grilled paneer, onions and mint sauce.","out":false},
+{"id":10,"name":"Masala Chai","cat":"Beverages","veg":true,"price":15,"wait":3,"icon":"☕","desc":"Hot ginger-cardamom tea.","out":false},
+{"id":11,"name":"Cold Coffee","cat":"Beverages","veg":true,"price":50,"wait":4,"icon":"🥤","desc":"Chilled, creamy and sweet.","out":false},
+{"id":12,"name":"Fresh Lime Soda","cat":"Beverages","veg":true,"price":30,"wait":3,"icon":"🍋","desc":"Sweet or salted, your choice.","out":false},
+{"id":13,"name":"Mango Shake","cat":"Beverages","veg":true,"price":60,"wait":5,"icon":"🥭","desc":"Thick shake made with seasonal mangoes.","out":true},
+{"id":14,"name":"Gulab Jamun (2 pcs)","cat":"Desserts","veg":true,"price":35,"wait":3,"icon":"🍮","desc":"Warm, syrupy milk dumplings.","out":false},
+{"id":15,"name":"Brownie","cat":"Desserts","veg":true,"price":55,"wait":3,"icon":"🍫","desc":"Fudgy chocolate brownie.","out":false},
+{"id":16,"name":"Ice Cream Cup","cat":"Desserts","veg":true,"price":40,"wait":2,"icon":"🍨","desc":"Vanilla, chocolate or butterscotch.","out":false}
+]
+</script>
+
+<script>
+const MENU = JSON.parse(document.getElementById('menu-data').textContent); // in the repo: fetch('menu.json')
+const CATS = ['All', ...new Set(MENU.map(i => i.cat))];
+const STEPS = ['Placed', 'Preparing', 'Ready', 'Picked up'];
+const STEP_MS = 8000; // demo speed
+const SLOTS = ['12:30','12:45','13:00','13:15','13:30','13:45'];
+const PAY = ['UPI','Card','Cash at counter'];
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const inr = n => '₹' + n;
+
+function load(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } }
+function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+
+let cart = load('cg-cart', {});
+let order = load('cg-order', null);
+let f = { q:'', cat:'All', diet:'all' };
+let payFail = false, timer = null;
+
+const lines = () => Object.entries(cart).map(([id,q]) => ({ item: MENU.find(i => i.id == id), q })).filter(l => l.item);
+const total = () => lines().reduce((s,l) => s + l.item.price * l.q, 0);
+const count = () => lines().reduce((s,l) => s + l.q, 0);
+
+function setQty(id, q){
+  const it = MENU.find(i => i.id == id);
+  if (!it || it.out) return;
+  if (q <= 0) delete cart[id]; else cart[id] = Math.min(q, 10);
+  save('cg-cart', cart);
+  $('#cnt').textContent = count();
+}
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 1800);
+}
+
+/* ---------- MENU ---------- */
+function viewMenu(){
+  $('#main').innerHTML = `
+  <h2>What’s for lunch?</h2>
+  <label for="q">Search the menu</label>
+  <input id="q" type="search" placeholder="e.g. biryani" value="${esc(f.q)}">
+  <div class="filters" role="group" aria-label="Category">${CATS.map(c =>
+    `<button class="pill" data-cat="${c}" aria-pressed="${f.cat===c}">${c}</button>`).join('')}</div>
+  <div class="filters" role="group" aria-label="Diet">${[['all','All'],['veg','Veg'],['non','Non-veg']].map(([k,l]) =>
+    `<button class="pill" data-diet="${k}" aria-pressed="${f.diet===k}">${l}</button>`).join('')}</div>
+  <p class="meta" id="res" role="status"></p>
+  <ul class="grid" id="grid"></ul>`;
+  $('#q').addEventListener('input', e => { f.q = e.target.value; drawGrid(); });
+  $('#main').querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { f.cat = b.dataset.cat; viewMenu(); });
+  $('#main').querySelectorAll('[data-diet]').forEach(b => b.onclick = () => { f.diet = b.dataset.diet; viewMenu(); });
+  drawGrid();
+}
+function drawGrid(){
+  const q = f.q.trim().toLowerCase();
+  const list = MENU.filter(i =>
+    (f.cat === 'All' || i.cat === f.cat) &&
+    (f.diet === 'all' || (f.diet === 'veg') === i.veg) &&
+    i.name.toLowerCase().includes(q));
+  $('#res').textContent = list.length + (list.length === 1 ? ' item' : ' items');
+  if (!list.length){
+    $('#grid').innerHTML = `<li style="grid-column:1/-1" class="empty panel"><div class="art" role="img" aria-label="Empty plate">🍽️</div>
+      <h3>No dishes found</h3><p class="meta">Try a different word or clear the filters.</p>
+      <button class="btn" id="clr">Clear filters</button></li>`;
+    $('#clr').onclick = () => { f = { q:'', cat:'All', diet:'all' }; viewMenu(); };
+    return;
+  }
+  $('#grid').innerHTML = list.map(i => `<li><article class="card ${i.out?'out':''}">
+    <div class="art" role="img" aria-label="${esc(i.name)} illustration">${i.icon}</div>
+    <div class="row"><h3>${esc(i.name)}</h3>${i.out ? '<span class="tag out">Sold out</span>' : ''}</div>
+    <p class="meta" style="margin:0">${esc(i.desc)}</p>
+    <p class="meta" style="margin:0"><span class="dot ${i.veg?'v':'n'}" aria-hidden="true"></span>${i.veg?'Veg':'Non-veg'} · ⏱ ${i.wait} min</p>
+    <div class="row" style="margin-top:auto"><strong>${inr(i.price)}</strong>
+    <button class="btn sm" data-add="${i.id}" ${i.out?'disabled':''} aria-label="${i.out?esc(i.name)+' is sold out':'Add '+esc(i.name)+' to cart'}">${i.out?'Unavailable':'Add'}</button></div>
+  </article></li>`).join('');
+  $('#grid').querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
+    const id = b.dataset.add; setQty(id, (cart[id]||0) + 1); toast('Added to cart');
+  });
+}
+
+/* ---------- CART & CHECKOUT ---------- */
+function viewCart(){
+  if (!lines().length){
+    $('#main').innerHTML = `<div class="empty panel"><div class="art" role="img" aria-label="Empty cart">🛒</div>
+      <h2>Your cart is empty</h2><p class="meta">Add something tasty and skip the queue.</p>
+      <a class="btn" href="#menu" style="display:inline-grid;place-items:center;text-decoration:none">Browse menu</a></div>`;
+    return;
+  }
+  $('#main').innerHTML = `<h2>Your order</h2><div class="cols">
+  <section class="panel" aria-label="Cart items"><div id="lines"></div>
+    <div class="line"><strong>Total</strong><strong id="tot" class="big" style="font-size:1.25rem"></strong></div></section>
+  <section class="panel" aria-labelledby="ch"><h3 id="ch" style="margin-bottom:16px">Checkout</h3>
+    <div id="alert"></div>
+    <form id="form" novalidate>
+      <div class="field"><label for="name">Name</label><input id="name" autocomplete="name" aria-describedby="e-name"><p class="err" id="e-name"></p></div>
+      <div class="field"><label for="roll">Roll number</label><input id="roll" aria-describedby="e-roll" placeholder="e.g. 22CS1045"><p class="err" id="e-roll"></p></div>
+      <div class="field"><label for="slot">Pickup time slot</label><select id="slot" aria-describedby="e-slot"><option value="">Choose a slot</option>${SLOTS.map(s=>`<option>${s}</option>`).join('')}</select><p class="err" id="e-slot"></p></div>
+      <fieldset class="field" style="border:0;padding:0;margin:0 0 16px" aria-describedby="e-pay"><legend style="font-weight:600;margin-bottom:4px">Payment method</legend>
+        ${PAY.map((p,i)=>`<label style="font-weight:400;display:flex;gap:8px;align-items:center;min-height:36px"><input type="radio" name="pay" value="${p}" style="width:auto;min-height:0"> ${p}</label>`).join('')}
+        <p class="err" id="e-pay"></p></fieldset>
+      <button class="btn" style="width:100%" type="submit">Pay &amp; place order</button>
+    </form></section></div>`;
+  if (payFail) $('#alert').innerHTML = `<div class="alert" role="alert"><strong>Payment failed.</strong> Nothing was charged. Please try again or choose another method.</div>`;
+  drawLines();
+  $('#form').onsubmit = submitOrder;
+}
+function drawLines(){
+  const L = lines();
+  if (!L.length) return viewCart();
+  $('#lines').innerHTML = L.map(({item:i,q}) => `<div class="line"><div><strong>${esc(i.name)}</strong><div class="meta">${inr(i.price)} each</div></div>
+    <div class="qty"><button class="btn ghost sm" data-d="${i.id}" aria-label="Decrease quantity of ${esc(i.name)}">−</button>
+    <span aria-live="polite" aria-label="Quantity ${q}">${q}</span>
+    <button class="btn ghost sm" data-u="${i.id}" aria-label="Increase quantity of ${esc(i.name)}">+</button>
+    <button class="btn ghost sm" data-r="${i.id}" aria-label="Remove ${esc(i.name)}">🗑</button></div>
+    <strong>${inr(i.price*q)}</strong></div>`).join('');
+  $('#tot').textContent = inr(total());
+  const g = (a, fn) => $('#lines').querySelectorAll(a).forEach(b => b.onclick = () => { fn(b); drawLines(); });
+  g('[data-d]', b => setQty(b.dataset.d, cart[b.dataset.d] - 1));
+  g('[data-u]', b => setQty(b.dataset.u, cart[b.dataset.u] + 1));
+  g('[data-r]', b => setQty(b.dataset.r, 0));
+}
+function submitOrder(e){
+  e.preventDefault();
+  const v = { name: $('#name').value.trim(), roll: $('#roll').value.trim().toUpperCase(), slot: $('#slot').value, pay: (document.querySelector('input[name=pay]:checked')||{}).value };
+  const errs = {
+    name: !v.name ? 'Please enter your name.' : v.name.length < 2 ? 'Name is too short.' : '',
+    roll: !v.roll ? 'Please enter your roll number.' : !/^[A-Z0-9]{6,12}$/.test(v.roll) ? 'Use 6–12 letters or digits, like 22CS1045.' : '',
+    slot: !v.slot ? 'Please choose a pickup slot.' : '',
+    pay: !v.pay ? 'Please choose a payment method.' : ''
+  };
+  let first = null;
+  for (const k in errs){
+    $('#e-'+k).textContent = errs[k];
+    const el = k === 'pay' ? null : $('#'+k);
+    if (el) el.setAttribute('aria-invalid', errs[k] ? 'true' : 'false');
+    if (errs[k] && !first) first = el || document.querySelector('input[name=pay]');
+  }
+  if (first){ first.focus(); return; }
+  // Demo: card payments fail the first time to show the error state
+  if (v.pay === 'Card' && !submitOrder.retried){ submitOrder.retried = true; payFail = true; viewCart();
+    $('#name').value = v.name; $('#roll').value = v.roll; $('#slot').value = v.slot; return; }
+  payFail = false; submitOrder.retried = false;
+  order = { id: 'CG' + String(Math.floor(100 + Math.random()*900)), name: v.name, slot: v.slot, pay: v.pay,
+    items: lines().map(l => ({ name: l.item.name, q: l.q })), total: total(), t0: Date.now() };
+  save('cg-order', order);
+  cart = {}; save('cg-cart', cart); $('#cnt').textContent = 0;
+  location.hash = 'track';
+}
+
+/* ---------- TRACKING ---------- */
+function stepNow(){ return order ? Math.min(STEPS.length - 1, Math.floor((Date.now() - order.t0) / STEP_MS)) : 0; }
+function viewTrack(){
+  if (!order){
+    $('#main').innerHTML = `<div class="empty panel"><div class="art" role="img" aria-label="No order">🧾</div><h2>No active order</h2>
+      <a class="btn" href="#menu" style="display:inline-grid;place-items:center;text-decoration:none">Browse menu</a></div>`;
+    return;
+  }
+  $('#main').innerHTML = `<h2>Order tracking</h2><section class="panel" style="max-width:520px">
+    <p class="meta" style="margin:0">Order number</p><p class="big" style="margin:0">#${order.id}</p>
+    <p class="meta">Pickup slot ${order.slot} · ${order.items.map(i => i.q+'× '+esc(i.name)).join(', ')} · ${inr(order.total)}</p>
+    <ol class="steps" id="steps"></ol><p id="eta" role="status" style="font-weight:600"></p>
+    <button class="btn ghost" id="new" hidden>Start a new order</button></section>`;
+  $('#new').onclick = () => { order = null; save('cg-order', null); location.hash = 'menu'; };
+  drawTrack();
+  clearInterval(timer); timer = setInterval(drawTrack, 1000);
+}
+function drawTrack(){
+  if (!$('#steps') || !order) return clearInterval(timer);
+  const s = stepNow();
+  $('#steps').innerHTML = STEPS.map((n,i) => `<li class="${i<s?'done':i===s?'now':''}" ${i===s?'aria-current="step"':''}><span class="n" aria-hidden="true">${i<s?'✓':i+1}</span>${n}</li>`).join('');
+  const left = Math.max(0, Math.ceil(((STEPS.length-2-s+1) * STEP_MS - ((Date.now()-order.t0) % STEP_MS)) / 60000 * 5));
+  const msg = s === 3 ? 'Enjoy your meal! 🎉' : s === 2 ? 'Your food is ready — show #' + order.id + ' at the counter.' : 'Estimated ready in about ' + (s === 0 ? '10' : '5') + ' min (demo runs faster).';
+  if ($('#eta').textContent !== msg) $('#eta').textContent = msg;
+  $('#new').hidden = s < 3;
+  if (s === 3) clearInterval(timer);
+}
+
+/* ---------- ROUTER ---------- */
+function route(){
+  clearInterval(timer);
+  const h = location.hash.slice(1) || 'menu';
+  ({ menu: viewMenu, cart: viewCart, track: viewTrack }[h] || viewMenu)();
+  window.scrollTo(0, 0);
+}
+$('#cartBtn').onclick = () => location.hash = 'cart';
+$('#theme').onclick = () => {
+  const r = document.documentElement, dark = getComputedStyle(r).colorScheme === 'dark';
+  r.dataset.theme = dark ? 'light' : 'dark';
+};
+$('#cnt').textContent = count();
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>
